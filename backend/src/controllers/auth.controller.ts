@@ -1,0 +1,11 @@
+import type { RequestHandler } from 'express';
+import { z } from 'zod';
+import * as auth from '../services/auth.service';
+const credentials = z.object({ email: z.string().email(), password: z.string().min(8) });
+const setRefresh = (res: Parameters<RequestHandler>[1], refresh: ReturnType<typeof auth.refreshCookie>) => res.cookie(refresh.name, refresh.value, refresh.options);
+export const login: RequestHandler = async (req, res, next) => { try { const data = credentials.parse(req.body); const result = await auth.login(data.email, data.password, req); setRefresh(res, result.refresh); res.json({ success: true, message: 'Login successful', data: { accessToken: result.accessToken, user: result.user } }); } catch (error) { next(error); } };
+export const refresh: RequestHandler = async (req, res, next) => { try { const result = await auth.refresh(req.cookies.refresh_token, req); setRefresh(res, result.refresh); res.json({ success: true, data: { accessToken: result.accessToken, user: result.user } }); } catch (error) { next(error); } };
+export const logout: RequestHandler = async (req, res, next) => { try { await auth.logout(req.cookies.refresh_token, req); res.clearCookie('refresh_token', { path: '/api/v1/auth' }); res.json({ success: true, message: 'Logged out successfully' }); } catch (error) { next(error); } };
+export const me: RequestHandler = async (req, res) => res.json({ success: true, data: req.auth });
+export const forgotPassword: RequestHandler = async (req, res, next) => { try { const { email } = z.object({ email: z.string().email() }).parse(req.body); await auth.requestPasswordReset(email); res.json({ success: true, message: 'If that account exists, reset instructions have been sent.' }); } catch (error) { next(error); } };
+export const resetPassword: RequestHandler = async (req, res, next) => { try { const { token, password } = z.object({ token: z.string().min(20), password: z.string().min(12) }).parse(req.body); await auth.resetPassword(token, password); res.json({ success: true, message: 'Password reset successfully. Please sign in.' }); } catch (error) { next(error); } };

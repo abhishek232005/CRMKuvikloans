@@ -1,0 +1,4 @@
+import 'dotenv/config';
+import { z } from 'zod';
+const schema = z.object({ NODE_ENV: z.enum(['development', 'test', 'production']).default('development'), PORT: z.coerce.number().int().positive().default(5000), DB_HOST: z.string().min(1), DB_PORT: z.coerce.number().int().positive().default(3306), DB_NAME: z.string().min(1), DB_USER: z.string().min(1), DB_PASSWORD: z.string(), JWT_ACCESS_SECRET: z.string().min(16), JWT_REFRESH_SECRET: z.string().min(16), FIELD_ENCRYPTION_KEY: z.string().min(32), SEED_ADMIN_EMAIL: z.string().email(), SEED_ADMIN_PASSWORD: z.string().min(12), SMTP_HOST: z.string().min(1).optional(), SMTP_PORT: z.coerce.number().int().positive().default(587), SMTP_USER: z.string().min(1).optional(), SMTP_PASSWORD: z.string().min(1).optional(), SMTP_FROM: z.string().email().optional(), FRONTEND_URL: z.string().url(), UPLOAD_DIR: z.string().min(1) });
+export const env = schema.parse(process.env);

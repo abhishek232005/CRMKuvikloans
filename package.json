@@ -1,0 +1,12 @@
+{
+  "name": "kuvik-loans-crm",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=@kuvik/frontend\" \"npm run dev --workspace=@kuvik/backend\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces"
+  },
+  "devDependencies": { "concurrently": "^9.1.2" }
+}

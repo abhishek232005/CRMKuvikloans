@@ -1,0 +1,9 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import { api } from '../api/client';
+import type { CurrentUser } from '../types/auth';
+type AuthContextValue = { user: CurrentUser | null; loading: boolean; login: (email: string, password: string) => Promise<void>; logout: () => Promise<void>; can: (permission: string) => boolean };
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+let accessToken: string | null = null;
+api.interceptors.request.use(config => { if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`; return config; });
+export function AuthProvider({ children }: PropsWithChildren) { const [user, setUser] = useState<CurrentUser | null>(null); const [loading, setLoading] = useState(true); const refresh = useCallback(async () => { const response = await api.post('/auth/refresh'); accessToken = response.data.data.accessToken; setUser(response.data.data.user); }, []); useEffect(() => { void refresh().catch(() => undefined).finally(() => setLoading(false)); }, [refresh]); const login = async (email: string, password: string) => { const response = await api.post('/auth/login', { email, password }); accessToken = response.data.data.accessToken; setUser(response.data.data.user); }; const logout = async () => { try { await api.post('/auth/logout'); } finally { accessToken = null; setUser(null); } }; const value = useMemo(() => ({ user, loading, login, logout, can: (permission: string) => Boolean(user?.permissions.includes(permission)) }), [user, loading]); return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>; }
+export const useAuth = () => { const value = useContext(AuthContext); if (!value) throw new Error('useAuth must be used inside AuthProvider'); return value; };

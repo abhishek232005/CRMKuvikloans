@@ -1,0 +1,13 @@
+import { Router } from 'express';
+import * as controller from '../controllers/catalog.controller';
+import { authenticate, requirePermission } from '../middleware/auth.middleware';
+export const catalogRouter = Router();
+catalogRouter.use(authenticate);
+catalogRouter.get('/products', requirePermission('products.manage'), controller.listProducts);
+catalogRouter.post('/products', requirePermission('products.manage'), controller.createProduct);
+catalogRouter.put('/products/:id', requirePermission('products.manage'), controller.updateProduct);
+catalogRouter.get('/lenders', requirePermission('lenders.manage'), controller.listLenders);
+catalogRouter.post('/lenders', requirePermission('lenders.manage'), controller.createLender);
+catalogRouter.put('/lenders/:id', requirePermission('lenders.manage'), controller.updateLender);
+catalogRouter.post('/lenders/:id/products', requirePermission('lenders.manage'), controller.mapLenderProduct);
+catalogRouter.post('/eligibility/check', requirePermission('leads.update'), controller.eligibilityCheck);

@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import * as controller from '../controllers/admin.controller';
+import { authenticate, requirePermission } from '../middleware/auth.middleware';
+export const adminRouter = Router();
+adminRouter.use(authenticate);
+adminRouter.get('/users', requirePermission('users.view'), controller.listUsers);
+adminRouter.post('/users', requirePermission('users.manage'), controller.createUser);
+adminRouter.put('/users/:id', requirePermission('users.manage'), controller.updateUser);
+adminRouter.get('/roles', requirePermission('roles.view'), controller.listRoles);
+adminRouter.post('/roles', requirePermission('roles.manage'), controller.createRole);
+adminRouter.put('/roles/:id', requirePermission('roles.manage'), controller.updateRole);
+adminRouter.get('/permissions', requirePermission('roles.view'), controller.listPermissions);

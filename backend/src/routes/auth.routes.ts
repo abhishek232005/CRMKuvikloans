@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
+import * as controller from '../controllers/auth.controller';
+import { authenticate } from '../middleware/auth.middleware';
+export const authRouter = Router();
+const limiter = rateLimit({ windowMs: 15 * 60_000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false });
+authRouter.post('/login', limiter, controller.login);
+authRouter.post('/refresh', controller.refresh);
+authRouter.post('/logout', authenticate, controller.logout);
+authRouter.post('/forgot-password', limiter, controller.forgotPassword);
+authRouter.post('/reset-password', limiter, controller.resetPassword);
+authRouter.get('/me', authenticate, controller.me);
