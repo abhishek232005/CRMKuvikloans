@@ -21,4 +21,15 @@ Kuvik Loans is a DSA and loan-distribution CRM. The foundation uses React/Vite/T
 - `npm run seed --workspace=@kuvik/backend` — idempotently create roles, permissions, Super Admin, products, sources, lender mapping, policy, and commission rule
 - `npm run test --workspace=@kuvik/backend` — run foundation utility tests
 
+## Database verification
+
+Run migrations only after `backend/.env` points to the intended MySQL database:
+
+- `npm run migration:run --workspace=@kuvik/backend` — apply every pending migration.
+- `npx typeorm-ts-node-commonjs migration:show -d src/config/data-source.ts` from `backend` — inspect applied (`[X]`) and pending (`[ ]`) migrations.
+- `npm run migration:revert --workspace=@kuvik/backend` is not defined; use `npx typeorm-ts-node-commonjs migration:revert -d src/config/data-source.ts` from `backend` to roll back only the newest applied migration.
+- `npm run seed --workspace=@kuvik/backend` — safe to run repeatedly; it upserts reference data and the Super Admin role mappings.
+
+Never use TypeORM `--fake` for a normal local migration: it records history without applying the schema change. After a migration, inspect the applied status and run the seed command twice to confirm idempotency.
+
 Create the database first with `CREATE DATABASE kuvik_crm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`. The initial migration creates the full Phase 2 schema. `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` control the development Super Admin and must be changed for any shared environment. Sensitive PAN and bank values are encrypted at rest; Aadhaar is represented only by verification metadata.

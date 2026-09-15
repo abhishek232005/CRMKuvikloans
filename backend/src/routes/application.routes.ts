@@ -1,0 +1,25 @@
+import { Router } from 'express';
+import * as controller from '../controllers/application.controller';
+import { authenticate, requireAnyPermission, requirePermission } from '../middleware/auth.middleware';
+
+export const applicationRouter = Router();
+applicationRouter.use(authenticate);
+applicationRouter.get('/applications/reference-data', requireAnyPermission('applications.view', 'applications.create', 'applications.update'), controller.referenceData);
+applicationRouter.get('/applications/product-fields/:productId', requireAnyPermission('applications.create', 'applications.update'), controller.productFields);
+applicationRouter.get('/applications/product-lenders/:productId', requireAnyPermission('applications.create', 'applications.update'), controller.productLenders);
+applicationRouter.get('/applications', requirePermission('applications.view'), controller.listApplications);
+applicationRouter.post('/applications', requirePermission('applications.create'), controller.create);
+applicationRouter.get('/applications/:id', requirePermission('applications.view'), controller.detail);
+applicationRouter.put('/applications/:id', requirePermission('applications.update'), controller.update);
+applicationRouter.patch('/applications/:id', requirePermission('applications.update'), controller.update);
+applicationRouter.patch('/applications/:id/status', requirePermission('applications.update'), controller.setStatus);
+applicationRouter.post('/applications/:id/assign', requirePermission('applications.update'), controller.assign);
+applicationRouter.post('/applications/:id/eligibility', requirePermission('applications.update'), controller.evaluate);
+applicationRouter.get('/applications/:id/checklist', requirePermission('documents.view'), controller.checklist);
+applicationRouter.post('/applications/:id/documents', requirePermission('documents.upload'), controller.attach);
+applicationRouter.put('/applications/:id/credit-assessment', requirePermission('applications.update'), controller.credit);
+applicationRouter.post('/applications/:id/queries', requirePermission('applications.update'), controller.createQuery);
+applicationRouter.patch('/applications/:id/queries/:queryId', requirePermission('applications.update'), controller.updateQuery);
+applicationRouter.put('/applications/:id/sanction', requirePermission('sanctions.approve'), controller.upsertSanction);
+applicationRouter.post('/applications/:id/sanction/accept', requirePermission('applications.update'), controller.sanctionAcceptance);
+applicationRouter.put('/applications/:id/agreement', requirePermission('applications.update'), controller.upsertAgreement);

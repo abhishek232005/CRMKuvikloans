@@ -1,3 +1,19 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-export function AppLayout() { const { user, logout, can } = useAuth(); return <div className="min-h-screen bg-slate-50"><aside className="fixed inset-y-0 w-60 bg-brand p-6 text-white"><Link to="/dashboard" className="text-xl font-bold">Kuvik Loans</Link><p className="mt-1 text-xs text-slate-300">Distribution CRM</p><nav className="mt-10 space-y-2">{[{ to: '/dashboard', label: 'Dashboard' }, ...(can('customers.view') ? [{ to: '/customers', label: 'Customers' }] : []), ...(can('leads.view') ? [{ to: '/leads', label: 'Leads' }, { to: '/eligibility', label: 'Eligibility' }] : []), ...(can('products.manage') ? [{ to: '/products', label: 'Products' }] : []), ...(can('lenders.manage') ? [{ to: '/lenders', label: 'Lenders' }] : []), ...(can('users.view') ? [{ to: '/users', label: 'Users' }] : []), ...(can('roles.view') ? [{ to: '/roles', label: 'Roles & Permissions' }] : []), { to: '/settings', label: 'Settings' }].map(item => <NavLink key={item.to} to={item.to} className={({ isActive }) => `block rounded px-3 py-2 ${isActive ? 'bg-white/15' : 'hover:bg-white/10'}`}>{item.label}</NavLink>)}</nav></aside><main className="ml-60"><header className="flex items-center justify-between border-b bg-white px-8 py-4"><div><p className="font-semibold">{user?.firstName ?? user?.email}</p><p className="text-xs text-slate-500">{user?.roles.join(', ')}</p></div><button onClick={() => void logout()} className="rounded border px-3 py-1.5 text-sm">Sign out</button></header><div className="p-8"><Outlet /></div></main></div>; }
+
+export function AppLayout() {
+  const { user, logout, can } = useAuth();
+  const navigation = [
+    { to: '/dashboard', label: 'Dashboard' },
+    ...(can('customers.view') ? [{ to: '/customers', label: 'Customers' }] : []),
+    ...(can('leads.view') ? [{ to: '/leads', label: 'Leads' }, { to: '/eligibility', label: 'Eligibility' }] : []),
+    ...(can('applications.view') ? [{ to: '/applications', label: 'Applications' }] : []),
+    ...(can('products.manage') ? [{ to: '/products', label: 'Products' }] : []),
+    ...(can('lenders.manage') ? [{ to: '/lenders', label: 'Lenders' }] : []),
+    ...(can('documents.view') ? [{ to: '/documents', label: 'Documents' }] : []),
+    ...(can('users.view') ? [{ to: '/users', label: 'Users' }] : []),
+    ...(can('roles.view') ? [{ to: '/roles', label: 'Roles & Permissions' }] : []),
+    { to: '/settings', label: 'Settings' },
+  ];
+  return <div className="min-h-screen bg-slate-50"><aside className="fixed inset-y-0 w-60 bg-brand p-6 text-white"><Link to="/dashboard" className="text-xl font-bold">Kuvik Loans</Link><p className="mt-1 text-xs text-slate-300">Distribution CRM</p><nav className="mt-10 space-y-2">{navigation.map(item => <NavLink key={item.to} to={item.to} className={({ isActive }) => `block rounded px-3 py-2 ${isActive ? 'bg-white/15' : 'hover:bg-white/10'}`}>{item.label}</NavLink>)}</nav></aside><main className="ml-60"><header className="flex items-center justify-between border-b bg-white px-8 py-4"><div><p className="font-semibold">{user?.firstName ?? user?.email}</p><p className="text-xs text-slate-500">{user?.roles.join(', ')}</p></div><button onClick={() => void logout()} className="rounded border px-3 py-1.5 text-sm">Sign out</button></header><div className="p-8"><Outlet /></div></main></div>;
+}

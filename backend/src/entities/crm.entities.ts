@@ -1,12 +1,86 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
-import { ApplicationStatus, CustomerLifecycleStatus, LeadStatus, ProductCategory, RecordStatus } from '../constants/enums';
+import { CustomerLifecycleStatus, LeadStatus, ProductCategory, RecordStatus } from '../constants/enums';
 import { SoftDeleteEntity } from './base.entity';
 import { Branch, User } from './access.entities';
-@Entity('lead_sources') export class LeadSource extends SoftDeleteEntity { @Index({ unique: true }) @Column({ length: 80 }) name!: string; @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus; }
-@Entity('loan_products') export class LoanProduct extends SoftDeleteEntity { @Index({ unique: true }) @Column({ length: 60 }) code!: string; @Column({ length: 160 }) name!: string; @Column({ type: 'enum', enum: ProductCategory }) category!: ProductCategory; @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus; @Column({ type: 'json', nullable: true }) metadata?: Record<string, unknown>; }
-@Entity('customers') export class Customer extends SoftDeleteEntity { @Index({ unique: true }) @Column({ name: 'business_id', length: 30 }) businessId!: string; @Column({ name: 'full_name', length: 180 }) fullName!: string; @Index() @Column({ type: 'enum', enum: CustomerLifecycleStatus, name: 'lifecycle_status', default: CustomerLifecycleStatus.NEW }) lifecycleStatus!: CustomerLifecycleStatus; @Column({ type: 'date', nullable: true }) dob?: string; @Column({ length: 30, nullable: true }) gender?: string; @Index() @Column({ length: 20 }) mobile!: string; @Column({ name: 'alternate_mobile', length: 20, nullable: true }) alternateMobile?: string; @Index() @Column({ length: 180, nullable: true }) email?: string; @Column({ name: 'pan_encrypted', type: 'text', nullable: true, select: false }) panEncrypted?: string; @Column({ name: 'aadhaar_last_four', length: 4, nullable: true }) aadhaarLastFour?: string; @Column({ name: 'aadhaar_status', length: 40, nullable: true }) aadhaarStatus?: string; @Column({ name: 'occupation', length: 100, nullable: true }) occupation?: string; @Column({ name: 'address_line', type: 'text', nullable: true }) addressLine?: string; @Index() @Column({ length: 100, nullable: true }) city?: string; @Column({ length: 100, nullable: true }) state?: string; @Column({ length: 12, nullable: true }) pincode?: string; @Column({ name: 'employment_type', length: 50, nullable: true }) employmentType?: string; @Column({ name: 'monthly_income', type: 'decimal', precision: 15, scale: 2, nullable: true }) monthlyIncome?: string; @Column({ name: 'annual_income', type: 'decimal', precision: 15, scale: 2, nullable: true }) annualIncome?: string; @Column({ name: 'existing_emi', type: 'decimal', precision: 15, scale: 2, nullable: true }) existingEmi?: string; @Column({ name: 'credit_score', type: 'smallint', nullable: true }) creditScore?: number; @Column({ name: 'source_id', type: 'char', length: 36, nullable: true }) sourceId?: string; @Column({ name: 'branch_id', type: 'char', length: 36, nullable: true }) branchId?: string; @Column({ name: 'assigned_rm_id', type: 'char', length: 36, nullable: true }) assignedRmId?: string; @Column({ name: 'preferred_product_id', type: 'char', length: 36, nullable: true }) preferredProductId?: string; @Column({ name: 'requested_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) requestedLoanAmount?: string; @Column({ name: 'loan_tenure_months', type: 'int', nullable: true }) loanTenureMonths?: number; @Column({ name: 'loan_purpose', type: 'text', nullable: true }) loanPurpose?: string; @Column({ type: 'json', nullable: true }) tags?: string[]; @ManyToOne(() => User) @JoinColumn({ name: 'assigned_rm_id' }) assignedRm?: User; @ManyToOne(() => Branch) @JoinColumn({ name: 'branch_id' }) branch?: Branch; @ManyToOne(() => LeadSource) @JoinColumn({ name: 'source_id' }) source?: LeadSource; @ManyToOne(() => LoanProduct) @JoinColumn({ name: 'preferred_product_id' }) preferredProduct?: LoanProduct; }
-@Entity('campaigns') export class Campaign extends SoftDeleteEntity { @Index({ unique: true }) @Column({ length: 100 }) code!: string; @Column({ length: 160 }) name!: string; @Column({ type: 'date', nullable: true }) startsOn?: string; @Column({ type: 'date', nullable: true }) endsOn?: string; }
-@Entity('lenders') export class Lender extends SoftDeleteEntity { @Index({ unique: true }) @Column({ name: 'business_id', length: 30 }) businessId!: string; @Index({ unique: true }) @Column({ length: 50 }) code!: string; @Column({ length: 180 }) name!: string; @Column({ name: 'contact_person', length: 120, nullable: true }) contactPerson?: string; @Column({ length: 180, nullable: true }) email?: string; @Column({ length: 20, nullable: true }) phone?: string; @Column({ name: 'min_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) minLoanAmount?: string; @Column({ name: 'max_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) maxLoanAmount?: string; @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus; }
-@Entity('lender_products') @Unique(['lenderId', 'productId']) export class LenderProduct extends SoftDeleteEntity { @Column({ name: 'lender_id', type: 'char', length: 36 }) lenderId!: string; @Column({ name: 'product_id', type: 'char', length: 36 }) productId!: string; @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus; @ManyToOne(() => Lender) @JoinColumn({ name: 'lender_id' }) lender!: Lender; @ManyToOne(() => LoanProduct) @JoinColumn({ name: 'product_id' }) product!: LoanProduct; }
-@Entity('product_policies') export class ProductPolicy extends SoftDeleteEntity { @Column({ name: 'lender_product_id', type: 'char', length: 36 }) lenderProductId!: string; @Column({ length: 120 }) name!: string; @Column({ type: 'json' }) rules!: Record<string, unknown>; @ManyToOne(() => LenderProduct) @JoinColumn({ name: 'lender_product_id' }) lenderProduct!: LenderProduct; }
-@Entity('leads') export class Lead extends SoftDeleteEntity { @Index({ unique: true }) @Column({ name: 'business_id', length: 30 }) businessId!: string; @Index() @Column({ name: 'customer_id', type: 'char', length: 36, nullable: true }) customerId?: string; @Column({ name: 'source_id', type: 'char', length: 36, nullable: true }) sourceId?: string; @Column({ name: 'campaign_id', type: 'char', length: 36, nullable: true }) campaignId?: string; @Column({ name: 'product_id', type: 'char', length: 36, nullable: true }) productId?: string; @Index() @Column({ name: 'assigned_to_id', type: 'char', length: 36, nullable: true }) assignedToId?: string; @Index() @Column({ type: 'enum', enum: LeadStatus, default: LeadStatus.NEW }) status!: LeadStatus; @Column({ name: 'required_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) requiredAmount?: string; @Column({ type: 'json', nullable: true }) snapshot?: Record<string, unknown>; @ManyToOne(() => Customer) @JoinColumn({ name: 'customer_id' }) customer?: Customer; @ManyToOne(() => LeadSource) @JoinColumn({ name: 'source_id' }) source?: LeadSource; @ManyToOne(() => Campaign) @JoinColumn({ name: 'campaign_id' }) campaign?: Campaign; @ManyToOne(() => LoanProduct) @JoinColumn({ name: 'product_id' }) product?: LoanProduct; @ManyToOne(() => User) @JoinColumn({ name: 'assigned_to_id' }) assignedTo?: User; }
+
+@Entity('lead_sources')
+export class LeadSource extends SoftDeleteEntity {
+  @Index({ unique: true }) @Column({ length: 80 }) name!: string;
+  @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus;
+}
+
+@Entity('loan_products')
+export class LoanProduct extends SoftDeleteEntity {
+  @Index({ unique: true }) @Column({ length: 60 }) code!: string;
+  @Column({ length: 160 }) name!: string;
+  @Column({ type: 'enum', enum: ProductCategory }) category!: ProductCategory;
+  @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus;
+  @Column({ type: 'json', nullable: true }) metadata?: Record<string, unknown>;
+  @Column({ type: 'text', nullable: true }) description?: string;
+  @Column({ name: 'min_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) minLoanAmount?: string;
+  @Column({ name: 'max_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) maxLoanAmount?: string;
+  @Column({ name: 'min_tenure_months', type: 'int', nullable: true }) minTenureMonths?: number;
+  @Column({ name: 'max_tenure_months', type: 'int', nullable: true }) maxTenureMonths?: number;
+  @Column({ name: 'min_interest_rate', type: 'decimal', precision: 6, scale: 3, nullable: true }) minInterestRate?: string;
+  @Column({ name: 'max_interest_rate', type: 'decimal', precision: 6, scale: 3, nullable: true }) maxInterestRate?: string;
+  @Column({ name: 'processing_fee', type: 'decimal', precision: 15, scale: 2, nullable: true }) processingFee?: string;
+  @Column({ type: 'json', nullable: true }) configuration?: Record<string, unknown>;
+}
+
+@Entity('customers')
+export class Customer extends SoftDeleteEntity {
+  @Index({ unique: true }) @Column({ name: 'business_id', length: 30 }) businessId!: string;
+  @Column({ name: 'full_name', length: 180 }) fullName!: string;
+  @Index() @Column({ type: 'enum', enum: CustomerLifecycleStatus, name: 'lifecycle_status', default: CustomerLifecycleStatus.NEW }) lifecycleStatus!: CustomerLifecycleStatus;
+  @Column({ type: 'date', nullable: true }) dob?: string;
+  @Column({ length: 30, nullable: true }) gender?: string;
+  @Index() @Column({ length: 20 }) mobile!: string;
+  @Column({ name: 'alternate_mobile', length: 20, nullable: true }) alternateMobile?: string;
+  @Index() @Column({ length: 180, nullable: true }) email?: string;
+  @Column({ name: 'pan_encrypted', type: 'text', nullable: true, select: false }) panEncrypted?: string;
+  @Column({ name: 'aadhaar_last_four', length: 4, nullable: true }) aadhaarLastFour?: string;
+  @Column({ name: 'aadhaar_status', length: 40, nullable: true }) aadhaarStatus?: string;
+  @Column({ name: 'occupation', length: 100, nullable: true }) occupation?: string;
+  @Column({ name: 'address_line', type: 'text', nullable: true }) addressLine?: string;
+  @Index() @Column({ length: 100, nullable: true }) city?: string;
+  @Column({ length: 100, nullable: true }) state?: string;
+  @Column({ length: 12, nullable: true }) pincode?: string;
+  @Column({ name: 'employment_type', length: 50, nullable: true }) employmentType?: string;
+  @Column({ name: 'monthly_income', type: 'decimal', precision: 15, scale: 2, nullable: true }) monthlyIncome?: string;
+  @Column({ name: 'annual_income', type: 'decimal', precision: 15, scale: 2, nullable: true }) annualIncome?: string;
+  @Column({ name: 'existing_emi', type: 'decimal', precision: 15, scale: 2, nullable: true }) existingEmi?: string;
+  @Column({ name: 'existing_loans', type: 'decimal', precision: 15, scale: 2, nullable: true }) existingLoans?: string;
+  @Column({ name: 'credit_card_outstanding', type: 'decimal', precision: 15, scale: 2, nullable: true }) creditCardOutstanding?: string;
+  @Column({ name: 'banking_relationship', length: 255, nullable: true }) bankingRelationship?: string;
+  @Column({ name: 'itr_details', length: 255, nullable: true }) itrDetails?: string;
+  @Column({ name: 'gst_details', length: 255, nullable: true }) gstDetails?: string;
+  @Column({ name: 'business_vintage_months', type: 'int', nullable: true }) businessVintageMonths?: number;
+  @Column({ name: 'credit_score', type: 'smallint', nullable: true }) creditScore?: number;
+  @Column({ name: 'source_id', type: 'char', length: 36, nullable: true }) sourceId?: string;
+  @Column({ name: 'branch_id', type: 'char', length: 36, nullable: true }) branchId?: string;
+  @Column({ name: 'assigned_rm_id', type: 'char', length: 36, nullable: true }) assignedRmId?: string;
+  @Column({ name: 'preferred_product_id', type: 'char', length: 36, nullable: true }) preferredProductId?: string;
+  @Column({ name: 'requested_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) requestedLoanAmount?: string;
+  @Column({ name: 'loan_tenure_months', type: 'int', nullable: true }) loanTenureMonths?: number;
+  @Column({ name: 'loan_purpose', type: 'text', nullable: true }) loanPurpose?: string;
+  @Column({ type: 'json', nullable: true }) tags?: string[];
+  @ManyToOne(() => User) @JoinColumn({ name: 'assigned_rm_id' }) assignedRm?: User;
+  @ManyToOne(() => Branch) @JoinColumn({ name: 'branch_id' }) branch?: Branch;
+  @ManyToOne(() => LeadSource) @JoinColumn({ name: 'source_id' }) source?: LeadSource;
+  @ManyToOne(() => LoanProduct) @JoinColumn({ name: 'preferred_product_id' }) preferredProduct?: LoanProduct;
+}
+
+@Entity('campaigns')
+export class Campaign extends SoftDeleteEntity { @Index({ unique: true }) @Column({ length: 100 }) code!: string; @Column({ length: 160 }) name!: string; @Column({ type: 'date', nullable: true }) startsOn?: string; @Column({ type: 'date', nullable: true }) endsOn?: string; }
+
+@Entity('lenders')
+export class Lender extends SoftDeleteEntity { @Index({ unique: true }) @Column({ name: 'business_id', length: 30 }) businessId!: string; @Index({ unique: true }) @Column({ length: 50 }) code!: string; @Column({ length: 180 }) name!: string; @Column({ name: 'contact_person', length: 120, nullable: true }) contactPerson?: string; @Column({ length: 180, nullable: true }) email?: string; @Column({ length: 20, nullable: true }) phone?: string; @Column({ name: 'min_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) minLoanAmount?: string; @Column({ name: 'max_loan_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) maxLoanAmount?: string; @Column({ type: 'json', nullable: true }) geography?: string[]; @Column({ type: 'text', nullable: true }) notes?: string; @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus; }
+
+@Entity('lender_products') @Unique(['lenderId', 'productId'])
+export class LenderProduct extends SoftDeleteEntity { @Column({ name: 'lender_id', type: 'char', length: 36 }) lenderId!: string; @Column({ name: 'product_id', type: 'char', length: 36 }) productId!: string; @Column({ type: 'enum', enum: RecordStatus, default: RecordStatus.ACTIVE }) status!: RecordStatus; @ManyToOne(() => Lender) @JoinColumn({ name: 'lender_id' }) lender!: Lender; @ManyToOne(() => LoanProduct) @JoinColumn({ name: 'product_id' }) product!: LoanProduct; }
+
+@Entity('product_policies')
+export class ProductPolicy extends SoftDeleteEntity { @Column({ name: 'lender_product_id', type: 'char', length: 36 }) lenderProductId!: string; @Column({ length: 120 }) name!: string; @Column({ type: 'json' }) rules!: Record<string, unknown>; @ManyToOne(() => LenderProduct) @JoinColumn({ name: 'lender_product_id' }) lenderProduct!: LenderProduct; }
+
+@Entity('leads')
+export class Lead extends SoftDeleteEntity { @Index({ unique: true }) @Column({ name: 'business_id', length: 30 }) businessId!: string; @Index() @Column({ name: 'customer_id', type: 'char', length: 36, nullable: true }) customerId?: string; @Column({ name: 'source_id', type: 'char', length: 36, nullable: true }) sourceId?: string; @Column({ name: 'campaign_id', type: 'char', length: 36, nullable: true }) campaignId?: string; @Column({ name: 'product_id', type: 'char', length: 36, nullable: true }) productId?: string; @Index() @Column({ name: 'assigned_to_id', type: 'char', length: 36, nullable: true }) assignedToId?: string; @Index() @Column({ type: 'enum', enum: LeadStatus, default: LeadStatus.NEW }) status!: LeadStatus; @Column({ name: 'required_amount', type: 'decimal', precision: 15, scale: 2, nullable: true }) requiredAmount?: string; @Column({ type: 'json', nullable: true }) snapshot?: Record<string, unknown>; @ManyToOne(() => Customer) @JoinColumn({ name: 'customer_id' }) customer?: Customer; @ManyToOne(() => LeadSource) @JoinColumn({ name: 'source_id' }) source?: LeadSource; @ManyToOne(() => Campaign) @JoinColumn({ name: 'campaign_id' }) campaign?: Campaign; @ManyToOne(() => LoanProduct) @JoinColumn({ name: 'product_id' }) product?: LoanProduct; @ManyToOne(() => User) @JoinColumn({ name: 'assigned_to_id' }) assignedTo?: User; }
