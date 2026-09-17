@@ -3,8 +3,9 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { dashboardRequestEnabled, permittedDashboardQuickActions, type DashboardPreset } from './dashboard-ui';
 
-type Preset = 'today' | 'last_7_days' | 'last_30_days' | 'this_month' | 'custom';
+type Preset = DashboardPreset;
 type Breakdown = { label: string; count: number };
 type DashboardData = {
   range: { preset: Preset; from: string; to: string };
@@ -61,7 +62,7 @@ export function DashboardContent() {
   const overview = useQuery<DashboardData>({
     queryKey: ['dashboard-overview', params],
     queryFn: async () => (await api.get('/dashboard/overview', { params })).data.data,
-    enabled: canViewReports && (preset !== 'custom' || Boolean(from && to)),
+    enabled: canViewReports && dashboardRequestEnabled(preset, from, to),
     retry: false,
   });
 
@@ -71,13 +72,7 @@ export function DashboardContent() {
 
   const data = overview.data;
   if (!data) return null;
-  const quickActions = [
-    { label: 'Add Customer', to: '/customers/new', permission: 'customers.create' },
-    { label: 'Create Lead', to: '/leads/new', permission: 'leads.create' },
-    { label: 'Check Eligibility', to: '/eligibility', permission: 'leads.view' },
-    { label: 'New Application', to: '/applications/new', permission: 'applications.create' },
-    { label: 'Upload Document', to: '/documents', permission: 'documents.upload' },
-  ].filter(action => can(action.permission));
+  const quickActions = permittedDashboardQuickActions(can);
   const documentRows = data.documents.byStatus;
 
   return <div className="mx-auto max-w-screen-2xl space-y-6">
